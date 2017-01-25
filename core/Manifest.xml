@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Template>
+  <Category>DesignPattern</Category>
+  <Title>Project Hudson Stream Analysis with Azure SQL DB and AML</Title>
+  <Owner displayname="Darwin Schweitzer" email="darsch@microsoft.com"/>
+  <PublishedOn>01/12/2017</PublishedOn>
+  <ImageUrl>{PatternAssetBaseUrl}/streamanalysiswithml.png</ImageUrl>
+  <Description>Analyzing data streams in real-time is a problem that a lot of businesses can relate to. In this fast paced digital era, enterprises depend on making quick and intelligent decisions. This requires them to analyze data streams from various sources in real time. For example, they might want to monitor weather data from a sensor, financial data from the stock market or social media reaction to a newly launched product or campaign.
+  We show you how to address this using a Cortana Intelligence Solution, which sets up an end-to-end pipeline to ingest Twitter feeds based on a user defined set of keywords, analyze their sentiment using an Azure Machine Learning based webservice and visualize the predicted sentiment in a Power BI dashboard.</Description>
+  <Summary src="StreamAnalysisWithMLSummary.md" format="markdown"/>
+  <Prerequisites src="Prereqs.md" format="markdown"/>
+  <EstimatedTime>10 Minutes</EstimatedTime>
+   <TryItNow landscapeDashboardPath="{PatternAssetBaseUrl/dashboards/TryItNow/ConnectedCarsPbiReport-sample-landscape.pbix"
+            portraitDashboardPath="{PatternAssetBaseUrl}/dashboards/TryItNow/ConnectedCarsPbiReport-sample-portrait.pbix" />
+  <Ingredients>
+    <Ingredient>Web</Ingredient>
+    <Ingredient>EventHub</Ingredient>
+    <Ingredient>StreamAnalytics</Ingredient>
+    <Ingredient>StorageAccount</Ingredient>
+    <Ingredient>MachineLearning</Ingredient>
+    <Ingredient>PowerBi</Ingredient>
+  </Ingredients>
+  <ProvisioningSteps>
+    <ArmDeployment source="MlWebSvcArmTemplate.json" title="Create ML Workspace and Storage Account and Database">
+      <Parameters>
+        <Parameter name="baseUrl" hidden="true">
+          <DefaultValue>{PatternAssetBaseUrl}</DefaultValue>
+        </Parameter>
+        <Parameter name="powerBiUserId" hidden="true">
+          <DefaultValue>{UserId}</DefaultValue>
+        </Parameter>
+        <Parameter name="powerBiUserDisplayName" hidden="true">
+          <DefaultValue>{UserDisplayName}</DefaultValue>
+        </Parameter>
+             <Parameter name="sqlServerUsername" regex="(?!^(admin|administrator|sa|root|dbmanager|loginmanager|dbo|guest|public)$)(^[a-zA-Z][a-zA-Z0-9_]{2,}$)" category="username">
+        <ExtraDescription>
+            Your SQL Server user name must meet the following requirements: it is a SQL identifier, and not a typical system name (like admin, administrator, sa, root, dbmanager, loginmanager, etc), or a built-in database user or role (like dbo, guest, public, etc); it has to be at least 3 characters long; it doesn't contain whitespaces, unicode characters, or nonalphabetic characters, and doesn't begin with numbers or symbols.
+          </ExtraDescription>
+        </Parameter>
+        <Parameter name="sqlServerPassword">
+          <ExtraDescription>
+            Please note that this password would be visible to people sharing the same subscription with you.
+            Your password must not contain all or part of the user account name, must be more than 8 characters in length and must contain characters from each of the following categories- English uppercase letters, English lowercase letters, numbers (0-9), and non-alphanumeric characters (!, $, #, %, etc.)
+          </ExtraDescription>
+        </Parameter>
+        <Parameter name="experimentGalleryUrl" hidden="true" />
+        <Parameter name="experimentPackageUrl" hidden="true" />
+        <Parameter name="experimentEntityId" hidden="true" />
+      </Parameters>
+    </ArmDeployment>
+    <AzureMlWebService title="Copy an Experiment from Gallery and deploy as Web Service">
+      <Parameters>
+        <Parameter hidden="true" type="string" name="experimentPackageUrl" defaultValue="https://storage.azureml.net/directories/5067590f26d5412ebf2220a1dacb0f22/items" description="Machine Learning Experiment Package Url" />
+        <Parameter hidden="true" type="string" name="experimentGalleryUrl" defaultValue="https://gallery.cortanaintelligence.com/Details/predictive-mini-twitter-sentiment-analysis-experiment-1" description="Machine Learning Experiment Gallery Url" />
+        <Parameter hidden="true" type="string" name="experimentEntityId" defaultValue="Predictive-Experiment-Mini-Twitter-sentiment-analysis-2" description="Machine Learning Experiment Entity Id" />
+      </Parameters>
+    </AzureMlWebService>
+    <Function name="prepsql" title="Preparing the SQL Database">
+      <Parameters>
+        <Parameter hidden="true" name="sqlServerName" defaultValue="{Outputs.sqlServerName}" />
+        <Parameter hidden="true" name="sqlDatabaseName" defaultValue="{Outputs.sqlDatabaseName}" />
+        <Parameter hidden="true" name="sqlServerUsername" defaultValue="{Outputs.sqlServerUsername}" />
+        <Parameter hidden="true" name="sqlServerPassword" defaultValue="{Outputs.sqlServerPassword}" />
+      </Parameters>
+    </Function>
+    <SolutionDashboard>
+      <Parameters>
+        <Parameter hidden="true" name="pbixFileUrl" defaultValue="{PatternAssetBaseUrl}/dashboards/solution/StreamingTweets.pbix" />
+        <Parameter hidden="true" name="sqlServer" defaultValue="{Outputs.sqlServerName}" />
+        <Parameter hidden="true" name="sqlDatabase" defaultValue="{Outputs.sqlDatabaseName}" />
+        <Parameter hidden="true" name="sqlServerUsername" defaultValue="{Outputs.sqlServerUsername}" />
+        <Parameter hidden="true" name="sqlServerPassword" defaultValue="{Outputs.sqlServerPassword}" />
+      </Parameters>
+    </SolutionDashboard>
+    <WebJob title="Copy the Predictive Sentiment Analysis Model from Gallery and deploy as Web Service">
+      <Parameters>
+        <Parameter name="appName" defaultValue="{Outputs.webJobSiteName}" />
+        <Parameter name="jobName" defaultValue="{Outputs.webJobName}" />
+      </Parameters>
+    </WebJob>
+    <ArmDeployment source="StreamAnalysisWithMLArmTemplate.json" title="Create Stream Analytics Job with ML Function">
+      <Parameters>
+        <Parameter name="baseUrl" hidden="true">
+          <DefaultValue>{PatternAssetBaseUrl}</DefaultValue>
+        </Parameter>
+        <Parameter name="powerBiUserId" hidden="true">
+          <DefaultValue>{Outputs.powerBiUserId}</DefaultValue>
+        </Parameter>
+        <Parameter name="powerBiUserDisplayName" hidden="true">
+          <DefaultValue>{Outputs.powerBiUserDisplayName}</DefaultValue>
+        </Parameter>
+        <Parameter name="mlFunctionEndpoint" hidden="true">
+          <DefaultValue>{Outputs.webServiceApiUrl}</DefaultValue>
+        </Parameter>
+        <Parameter name="mlFunctionApiKey" hidden="true">
+          <DefaultValue>{Outputs.webServiceApiKey}</DefaultValue>
+        </Parameter>
+        <Parameter name="sqlServerName" hidden="true">
+          <DefaultValue>{Outputs.sqlServerName}</DefaultValue>
+        </Parameter>
+        <Parameter name="sqlDatabaseName" hidden="true">
+          <DefaultValue>{Outputs.sqlDatabaseName}</DefaultValue>
+        </Parameter>
+        <Parameter name="sqlServerUsername" hidden="true">
+          <DefaultValue>{Outputs.sqlServerUsername}</DefaultValue>
+        </Parameter>
+        <Parameter name="sqlServerPassword" hidden="true">
+          <DefaultValue>{Outputs.sqlServerPassword}</DefaultValue>
+        </Parameter>
+        <Parameter name="twitterKeywords" hidden="true">
+          <DefaultValue>{Outputs.twitterKeywords}</DefaultValue>
+        </Parameter>
+        <Parameter name="oauthConsumerKey" hidden="true">
+          <DefaultValue>{Outputs.oauthConsumerKey}</DefaultValue>
+        </Parameter>
+        <Parameter name="oauthConsumerSecret" hidden="true">
+          <DefaultValue>{Outputs.oauthConsumerSecret}</DefaultValue>
+        </Parameter>
+        <Parameter name="oauthToken" hidden="true">
+          <DefaultValue>{Outputs.oauthToken}</DefaultValue>
+        </Parameter>
+        <Parameter name="oauthTokenSecret" hidden="true">
+          <DefaultValue>{Outputs.oauthTokenSecret}</DefaultValue>
+        </Parameter>
+      </Parameters>
+    </ArmDeployment>
+    <Manual title="Done">
+      <Instructions src="StreamAnalysisWithMLInstructions.md" format="markdown"></Instructions>
+      <Actions>
+        <Action id="startjob">
+          <![CDATA[
+                {
+                  "SubscriptionId": "[SubscriptionId]",
+                  "ProjectName": "[ProjectName]",
+                  "HttpVerb": "POST",
+                  "BaseUrlType": "CSM",
+                  "UrlPath": "/subscriptions/[SubscriptionId]/resourceGroups/[ResourceGroup.Name]/providers/Microsoft.StreamAnalytics/streamingjobs/[Outputs.saName]/start?api-version=2015-06-01",
+                  "Headers": {"Content-Type": "application/json"},
+                  "Payload": null
+                }
+              ]]>
+        </Action>
+        <Action id="stopjob">
+          <![CDATA[
+                {
+                  "SubscriptionId": "[SubscriptionId]",
+                  "ProjectName": "[ProjectName]",
+                  "HttpVerb": "POST",
+                  "BaseUrlType": "CSM",
+                  "UrlPath": "/subscriptions/[SubscriptionId]/resourceGroups/[ResourceGroup.Name]/providers/Microsoft.StreamAnalytics/streamingjobs/[Outputs.saName]/stop?api-version=2015-06-01",
+                  "Headers": {"Content-Type": "application/json"},
+                  "Payload": null
+                }
+              ]]>
+        </Action>
+      </Actions>
+    </Manual>
+  </ProvisioningSteps>
+</Template>

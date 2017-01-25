@@ -1,0 +1,397 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "baseUrl": {
+            "type": "string"
+        },
+        "powerBiUserId": {
+            "type": "string",
+            "metadata": {
+                "description": "User ID for PowerBI"
+            }
+        },
+        "powerBiUserDisplayName": {
+            "type": "string",
+            "metadata": {
+                "description": "User display name for PowerBI"
+            }
+        },
+        "sqlServerName": {
+            "type": "string",
+            "metadata": {
+                "description": "SQL Server Name"
+            }
+        },
+        "sqlDatabaseName": {
+            "type": "string",
+            "metadata": {
+                "description": "Database Name"
+            }
+        },
+        "sqlServerUsername": {
+            "type": "string",
+            "metadata": {
+                "description": "SQL Server User Name"
+            }
+        },
+        "sqlServerPassword": {
+            "type": "securestring",
+            "metadata": {
+                "description": "SQL Server Password"
+            }
+        },
+        "twitterKeywords": {
+            "type": "string",
+            "metadata": {
+                "description": "Keywords for Twitter sentiment analysis, please seperate multiple words by comma (hashtags # and user mentions @ cannot be used in keywords)"
+            }
+        },
+        "oauthConsumerKey": {
+            "type": "string",
+            "metadata": {
+                "description": "OAuth Consumer Key of your Twitter account"
+            }
+        },
+        "oauthConsumerSecret": {
+            "type": "string",
+            "metadata": {
+                "description": "OAuth Consumer Secret of your Twitter account"
+            }
+        },
+        "oauthToken": {
+            "type": "string",
+            "metadata": {
+                "description": "OAuth Access Token of your Twitter account"
+            }
+        },
+        "oauthTokenSecret": {
+            "type": "string",
+            "metadata": {
+                "description": "OAuth Access Token Secret of your Twitter account"
+            }
+        },
+        "mlFunctionEndpoint": {
+            "type": "string",
+            "metadata": {
+                "description": "End point of Twitter sentiment analysis machine learning web service"
+            }
+        },
+        "mlFunctionApiKey": {
+            "type": "string",
+            "metadata": {
+                "description": "Api key of Twitter sentiment analysis machine learning web service"
+            }
+        }
+    },
+
+    "variables": {
+        "namePrefix": "[resourceGroup().name]",
+        "uniqueNamePrefix": "[toLower(concat(resourceGroup().name, uniqueString(subscription().subscriptionId)))]",
+        "location": "[resourceGroup().location]",
+        "storageAccountType": "Standard_LRS",
+        "storageVersion": "2015-06-15",
+        "storageName": "[variables('uniqueNamePrefix')]",
+        "storageId": "[resourceId('Microsoft.Storage/storageAccounts', variables('storageName'))]",
+        "sqlServerName": "[parameters('sqlServerName')]",
+        "sqlDatabaseName": "[parameters('sqlDatabaseName')]",
+        "sqlServerUsername": "[parameters('sqlServerUsername')]",
+        "sqlServerPassword": "[parameters('sqlServerPassword')]",
+        "sbVersion": "2014-09-01",
+        "sbName": "[concat(variables('uniqueNamePrefix'), 'servicebus')]",
+        "sbKeyName": "RootManageSharedAccessKey",
+        "sbResourceId": "[resourceId('Microsoft.Eventhub/namespaces/authorizationRules', variables('sbName'), variables('sbKeyName'))]",
+        "saJobName": "[concat(variables('namePrefix'), 'sajob')]",
+        "saVersion": "2015-06-01",
+        "ehInName": "[concat(variables('namePrefix'), 'ehin')]",
+        "ehSendPolicyKeyName": "SendPolicy",
+        "ehSendPolicyResourceId": "[resourceId('Microsoft.EventHub/namespaces/eventHubs/authorizationRules', variables('sbName'), variables('ehInName'), variables('ehSendPolicyKeyName'))]",
+        "ehResourceId": "[concat(concat(concat('Microsoft.Eventhub/namespaces/', variables('sbName')), '/eventHubs/'), variables('ehInName'))]",
+        "ehSendPolicyName": "[concat(variables('sbName'), concat('/', concat(variables('ehInName'), concat('/', variables('ehSendPolicyKeyName')))))]",
+        "ehPrimaryKey": "twqaPF9phvUpL15t83hLMaRVYizLA2HYo3iFRMzRHMo=",
+        "ehSecondaryKey": "pVjEaumd56Id2UCwbIHEVzOFIHpiR1HbBSQKfeWa7Ns=",
+        "powerBiRefreshToken": "none",
+        "powerBiGroupId": "00000000-0000-0000-0000-000000000000",
+        "powerBiWorkspaceName": "My Workspace",
+        "transformQuery": "WITH subquery AS (SELECT text, topic, CreatedAt, sentiment(text) as result from [TwitterStream] WHERE text IS NOT NULL) Select text, topic, createdAt, CAST(result.[score] AS float) as Score Into [SQLOutput] From subquery  SELECT * INTO [StreamOutput] FROM [TwitterStream] WHERE text IS NOT NULL",
+        "sfVersion": "2016-03-01",
+        "wsVersion": "2016-03-01",
+        "webJobName": "TwitterClient",
+        "webJobSiteName": "[concat(variables('uniqueNamePrefix'),'wj2')]",
+        "appspsku": "Standard",
+        "workerSize": "1",
+        "hostingPlanName": "[concat(variables('uniqueNamePrefix'), 'hostingplan')]",
+        "webJobPackageUrl": "[concat(parameters('baseUrl'), '/', 'twtrwithml01.zip')]",
+        "wsResourceId": "[resourceId('Microsoft.Web/sites', variables('webJobSiteName'))]",
+        "sfResourceId": "[resourceId('Microsoft.Web/serverFarms', variables('hostingPlanName'))]"
+    },
+
+    "resources": [
+        {
+            "apiVersion": "[variables('storageVersion')]",
+            "type": "Microsoft.Storage/storageAccounts",
+            "name": "[variables('storageName')]",
+            "location": "[variables('location')]",
+            "properties": { "accountType": "[variables('storageAccountType')]" }
+        },
+        {
+            "apiVersion": "[variables('sbVersion')]",
+            "name": "[variables('sbName')]",
+            "type": "Microsoft.Eventhub/namespaces",
+            "location": "[variables('location')]",
+            "properties": {
+                "region": "[variables('location')]"
+            },
+            "resources": [
+                {
+                    "apiVersion": "[variables('sbVersion')]",
+                    "name": "[variables('ehInName')]",
+                    "type": "eventHubs",
+                    "location": "[variables('location')]",
+                    "dependsOn": [
+                        "[concat('Microsoft.Eventhub/namespaces/', variables('sbName'))]"
+                    ],
+                    "properties": {
+                        "path": "[variables('ehInName')]"
+                    },
+                    "resources": [
+                        {
+                            "apiVersion": "2014-09-01",
+                            "name": "[variables('ehSendPolicyKeyName')]",
+                            "type": "authorizationRules",
+                            "location": "[variables('location')]",
+                            "dependsOn": [
+                                "[variables('ehResourceId')]"
+                            ],
+                            "properties": {
+                                "KeyName": "[variables('ehSendPolicyKeyName')]",
+                                "ClaimType": "SharedAccessKey",
+                                "ClaimValue": "None",
+                                "primaryKey": "[variables('ehPrimaryKey')]",
+                                "SecondaryKey": "[variables('ehSecondaryKey')]",
+                                "Rights": [ 1, 2, 0 ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "apiVersion": "[variables('saVersion')]",
+            "type": "Microsoft.StreamAnalytics/streamingjobs",
+            "name": "[variables('saJobName')]",
+            "location": "[variables('location')]",
+            "dependsOn": [
+                "[concat('Microsoft.Storage/storageAccounts/', variables('storageName'))]"
+            ],
+            "properties": {
+                "sku": { "name": "standard" },
+                "EventsOutOfOrderMaxDelayInSeconds": 10,
+                "EventsOutOfOrderPolicy": "adjust",
+                "Inputs": [
+                    {
+                        "Name": "TwitterStream",
+                        "Properties": {
+                            "DataSource": {
+                                "Properties": {
+                                    "ConsumerGroupName": "",
+                                    "EventHubName": "[variables('ehInName')]",
+                                    "ServiceBusNamespace": "[variables('sbName')]",
+                                    "SharedAccessPolicyKey": "[listkeys(variables('sbResourceId'), variables('sbVersion')).primaryKey]",
+                                    "SharedAccessPolicyName": "[variables('sbKeyName')]"
+                                },
+                                "Type": "Microsoft.ServiceBus/EventHub"
+                            },
+                            "Serialization": {
+                                "Properties": {
+                                    "fieldDelimiter": ",",
+                                    "Encoding": "UTF8"
+                                },
+                                "Type": "Csv"
+                            },
+                            "Type": "Stream"
+                        }
+                    }
+                ],
+                "Outputs": [
+                    {
+                        "Name": "StreamOutput",
+                        "Properties": {
+                            "DataSource": {
+                                "Properties": {
+                                    "Container": "twitterRows",
+                                    "DateFormat": "yyyy/MM/dd",
+                                    "TimeFormat": "HH",
+                                    "PathPattern": "Output/logs/{date}/{time}",
+                                    "StorageAccounts": [
+                                        {
+                                            "AccountKey": "[listkeys(variables('storageId'), variables('storageVersion')).key1]",
+                                            "AccountName": "[variables('storageName')]"
+                                        }
+                                    ]
+                                },
+                                "Type": "Microsoft.Storage/Blob"
+                            },
+                            "Serialization": {
+                                "Properties": {
+                                    "fieldDelimiter": ",",
+                                    "Encoding": "UTF8"
+                                },
+                                "Type": "Csv"
+                            }
+                        }
+                    },
+                    {     
+                        "Name": "SQLOutput",
+                        "Properties": {
+                            "DataSource": {
+                                "Properties": {
+                                    "Database": "[variables('sqlDatabaseName')]",
+                                    "Password": "[variables('sqlServerPassword')]",
+                                    "Server": "[variables('sqlServerName')]",
+                                    "Table": "TweetScore",
+                                    "User": "[variables('sqlServerUsername')]"
+                                   },
+                                    "Type": "Microsoft.Sql/Server/Database"
+                                }
+                            }
+                        }
+                ],
+                "Transformation": {
+                    "Name": "AllToBlob",
+                    "Properties": {
+                        "Query": "[variables('transformQuery')]",
+                        "StreamingUnits": 1
+                    }
+                },
+                "functions": [
+                    {
+                        "name": "sentiment",
+                        "type": "Microsoft.StreamAnalytics/streamingjobs/functions",
+                        "properties": {
+                            "type": "Scalar",
+                            "properties": {
+                                "inputs": [ { "dataType": "nvarchar(max)", "isConfigurationParameter": null } ],
+                                "output": { "dataType": "record" },
+                                "binding": {
+                                    "type": "Microsoft.MachineLearning/WebService",
+                                    "properties": {
+                                        "endpoint": "[concat(parameters('mlFunctionEndpoint'), '/execute?api-version=2.0&details=true')]",
+                                        "apiKey": "[parameters('mlFunctionapiKey')]",
+                                        "inputs": { "name": "data", "columnNames": [ { "name": "tweet_text", "dataType": "string", "mapTo": 0 } ] },
+                                        "outputs": [ { "name": "Sentiment", "dataType": "string" }, { "name": "Score", "dataType": "double" } ],
+                                        "batchSize": 1000
+                                    }
+                                }
+                            },
+                            "etag": "bfe60824-e1a7-4813-94ee-0f33f5dda14a"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "apiVersion": "[variables('sfVersion')]",
+            "type": "Microsoft.Web/serverfarms",
+            "name": "[variables('hostingPlanName')]",
+            "location": "[variables('location')]",
+            "properties": {
+                "name": "[variables('hostingPlanName')]",
+                "workerSize": "[variables('workerSize')]",
+                "numberOfWorkers": 1
+            },
+            "sku": {
+                "name": "S1",
+                "tier": "[variables('appspsku')]",
+                "size": "S1",
+                "family": "S",
+                "capacity": "1"
+            }
+        },
+        {
+            "apiVersion": "[variables('wsVersion')]",
+            "type": "Microsoft.Web/sites",
+            "name": "[variables('webJobSiteName')]",
+            "location": "[variables('location')]",
+            "dependsOn": [
+                "[variables('sfResourceId')]"
+            ],
+            "tags": {
+                "[concat('hidden-related:', variables('sfResourceId'))]": "empty"
+            },
+            "properties": {
+                "name": "[variables('webJobSiteName')]",
+                "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
+                "siteConfig": {
+                    "AlwaysOn": true,
+                    "appSettings": [
+                        {
+                            "Name": "oauth_consumer_key",
+                            "Value": "[parameters('oauthConsumerKey')]"
+                        },
+                        {
+                            "Name": "oauth_consumer_secret",
+                            "Value": "[parameters('oauthConsumerSecret')]"
+                        },
+                        {
+                            "Name": "oauth_token",
+                            "Value": "[parameters('oauthToken')]"
+                        },
+                        {
+                            "Name": "oauth_token_secret",
+                            "Value": "[parameters('oauthTokenSecret')]"
+                        },
+                        {
+                            "Name": "twitter_keywords",
+                            "Value": "[parameters('twitterKeywords')]"
+                        },
+                        {
+                            "Name": "EventHubName",
+                            "Value": "[variables('ehInName')]"
+                        },
+                        {
+                            "Name": "EventHubConnectionString",
+                            "Value": "[listkeys(variables('ehSendPolicyResourceId'), variables('sbVersion')).primaryConnectionString]"
+                        },
+                        {
+                            "Name": "SCM_COMMAND_IDLE_TIMEOUT",
+                            "Value": "1200"
+                        },
+                        {
+                            "Name": "WEBJOBS_IDLE_TIMEOUT",
+                            "Value": "1800"
+                        }
+                    ]
+                }
+            },
+            "resources": [
+                {
+                    "apiVersion": "[variables('wsVersion')]",
+                    "name": "MSDeploy",
+                    "type": "extensions",
+                    "dependsOn": [
+                        "[variables('wsResourceId')]"
+                    ],
+                    "properties": {
+                        "packageUri": "[variables('webJobPackageUrl')]",
+                        "dbType": "None",
+                        "connectionString": "",
+                        "setParameters": {
+                            "IIS Web Application Name": "[variables('webJobSiteName')]"
+                        }
+                    }
+                }
+            ]
+        }
+    ],
+  "outputs": {
+    "ehName": { "type": "string", "value": "[variables('ehInName')]" },
+    "ehSendPolicyConnectionString": { "type": "string", "value": "[listkeys(variables('ehSendPolicyResourceId'), variables('sbVersion')).primaryConnectionString]" },
+    "saName": { "type": "string", "value": "[variables('saJobName')]" },
+    "saJobOutputsUrl": { "type": "string", "value": "[concat('https://portal.azure.com/#resource/subscriptions/', subscription().subscriptionId, '/resourceGroups/', resourceGroup().name, '/providers/Microsoft.StreamAnalytics/streamingjobs/', variables('saJobName'), '/overview')]" },
+    "storagekey": { "type": "string", "value": "[listkeys(variables('storageId'), variables('storageVersion')).key1]" },
+    "webJob2Name": { "type": "string", "value": "[variables('webJobName')]" },
+    "webJob2SiteName": { "type": "string", "value": "[variables('webJobSiteName')]" },
+    "webJob2LogsUrl": { "type": "string", "value": "[concat('https://', variables('webJobSiteName'), '.scm.azurewebsites.net/azurejobs/#/jobs/continuous/', variables('webJobName'))]" }
+  }
+}
