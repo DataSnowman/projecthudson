@@ -18,7 +18,7 @@ Deploying multiple ARM templates and functions to accomplish actions that cannot
 <Guide type="LongDescription">
 This tutorial demonstrates how to capture, curate, and consume tweets from the Twitter streaming API.  You enter keywords and your oauth tokens to capture tweets, calculate a sentiment score, and then consume the output in embedded Power BI.
 
-[![Solution Diagram]({PatternAssetBaseUrl}/StreamAnalysisWithMLDiagram.JPG)](https://raw.githubusercontent.com/DataSnowman/projecthudson/master/assets/StreamAnalysisWithMLDiagram.JPG)
+[![Solution Diagram](https://raw.githubusercontent.com/DataSnowman/projecthudson/master/assets/StreamAnalysisWithMLDiagram.JPG)](https://raw.githubusercontent.com/DataSnowman/projecthudson/master/assets/StreamAnalysisWithMLDiagram.JPG)
 
 This solution sets up the infrastructure in the diagram above.
 
