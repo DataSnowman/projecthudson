@@ -10,7 +10,7 @@
 
 #<a name="Summary"></a>Summary
 <Guide type="ShortDescription">
-Deploying multiple ARM templates and functions to accomplish actions that cannot be accomplsihed through ARM templates to capture, curate, and consume tweets from the Twitter streaming API.
+Capture, curate, and consume tweets from the Twitter streaming API by deploying multiple ARM templates and functions.
 </Guide>
 
 #<a name="Description"></a>Description
@@ -42,7 +42,7 @@ The pattern involves the following four steps:
 
 More details on Twitter's Streaming API OAuth access token can be found [here](https://dev.twitter.com/oauth/overview/application-owner-access-tokens).
 
-You can avoid showing this section in CIQS by removing the &lt;Prerequisites&gt; tag.
+
 </Guide>
 
 # <a name="PostDeployment"></a>Post Deployment Guidance
