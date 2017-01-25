@@ -1,4 +1,4 @@
-#Solution How To Guide for ProjectHudson solution
+#Solution How To Guide for ProjectHudson Tutorial
 * [Summary](#Summary)
 * [Description](#Description)
 * [Prerequisites](#Prerequisites)
