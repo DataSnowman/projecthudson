@@ -20,7 +20,7 @@ This tutorial demonstrates how to capture, curate, and consume tweets from the T
 
 [![Solution Diagram](https://raw.githubusercontent.com/DataSnowman/projecthudson/master/assets/StreamAnalysisWithMLDiagram.JPG)](https://raw.githubusercontent.com/DataSnowman/projecthudson/master/assets/StreamAnalysisWithMLDiagram.JPG)
 
-This solution sets up the infrastructure in the diagram above.
+This tutorial sets up the infrastructure in the diagram above.
 
 The pattern involves the following four steps:
 
