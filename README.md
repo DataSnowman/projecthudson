@@ -32,6 +32,7 @@ The pattern involves the following four steps:
 
 #<a name="Prerequisites">Prerequisites</a>
 <Guide type="Prerequisites">
+
 1. [Twitter account](https://twitter.com/login)
 2. [Twitter application](https://apps.twitter.com)
 3. Twitter's Streaming API OAuth credentials
