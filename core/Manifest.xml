@@ -21,18 +21,12 @@
     <Ingredient>PowerBi</Ingredient>
   </Ingredients>
   <ProvisioningSteps>
-    <ArmDeployment source="MlWebSvcArmTemplate.json" title="Create ML Workspace and Storage Account and Database">
+    <ArmDeployment source="SQLserver.json" title="Create SQL Database">
       <Parameters>
         <Parameter name="baseUrl" hidden="true">
           <DefaultValue>{PatternAssetBaseUrl}</DefaultValue>
         </Parameter>
-        <Parameter name="powerBiUserId" hidden="true">
-          <DefaultValue>{UserId}</DefaultValue>
-        </Parameter>
-        <Parameter name="powerBiUserDisplayName" hidden="true">
-          <DefaultValue>{UserDisplayName}</DefaultValue>
-        </Parameter>
-             <Parameter name="sqlServerUsername" regex="(?!^(admin|administrator|sa|root|dbmanager|loginmanager|dbo|guest|public)$)(^[a-zA-Z][a-zA-Z0-9_]{2,}$)" category="username">
+        <Parameter name="sqlServerUsername" regex="(?!^(admin|administrator|sa|root|dbmanager|loginmanager|dbo|guest|public)$)(^[a-zA-Z][a-zA-Z0-9_]{2,}$)" category="username">
         <ExtraDescription>
             Your SQL Server user name must meet the following requirements: it is a SQL identifier, and not a typical system name (like admin, administrator, sa, root, dbmanager, loginmanager, etc), or a built-in database user or role (like dbo, guest, public, etc); it has to be at least 3 characters long; it doesn't contain whitespaces, unicode characters, or nonalphabetic characters, and doesn't begin with numbers or symbols.
           </ExtraDescription>
@@ -43,11 +37,15 @@
             Your password must not contain all or part of the user account name, must be more than 8 characters in length and must contain characters from each of the following categories- English uppercase letters, English lowercase letters, numbers (0-9), and non-alphanumeric characters (!, $, #, %, etc.)
           </ExtraDescription>
         </Parameter>
-        <Parameter name="experimentGalleryUrl" hidden="true" />
-        <Parameter name="experimentPackageUrl" hidden="true" />
-        <Parameter name="experimentEntityId" hidden="true" />
       </Parameters>
     </ArmDeployment>
+    <AzureMlWebService title="Copy an Experiment from Gallery and deploy as Web Service">
+      <Parameters>
+        <Parameter hidden="true" type="string" name="experimentPackageUrl" defaultValue="https://storage.azureml.net/directories/5067590f26d5412ebf2220a1dacb0f22/items" description="Machine Learning Experiment Package Url" />
+        <Parameter hidden="true" type="string" name="experimentGalleryUrl" defaultValue="https://gallery.cortanaintelligence.com/Details/predictive-mini-twitter-sentiment-analysis-experiment-1" description="Machine Learning Experiment Gallery Url" />
+        <Parameter hidden="true" type="string" name="experimentEntityId" defaultValue="Predictive-Experiment-Mini-Twitter-sentiment-analysis-2" description="Machine Learning Experiment Entity Id" />
+      </Parameters>
+    </AzureMlWebService>
     <Function name="prepsql" title="Preparing the SQL Database">
       <Parameters>
         <Parameter hidden="true" name="sqlServerName" defaultValue="{Outputs.sqlServerName}" />
@@ -65,22 +63,16 @@
         <Parameter hidden="true" name="sqlServerPassword" defaultValue="{Outputs.sqlServerPassword}" />
       </Parameters>
     </SolutionDashboard>
-    <WebJob title="Copy the Predictive Sentiment Analysis Model from Gallery and deploy as Web Service">
-      <Parameters>
-        <Parameter name="appName" defaultValue="{Outputs.webJobSiteName}" />
-        <Parameter name="jobName" defaultValue="{Outputs.webJobName}" />
-      </Parameters>
-    </WebJob>
     <ArmDeployment source="StreamAnalysisWithMLArmTemplate.json" title="Create Stream Analytics Job with ML Function">
       <Parameters>
         <Parameter name="baseUrl" hidden="true">
           <DefaultValue>{PatternAssetBaseUrl}</DefaultValue>
         </Parameter>
-        <Parameter name="powerBiUserId" hidden="true">
-          <DefaultValue>{Outputs.powerBiUserId}</DefaultValue>
+        <Parameter name="storageAccountName" hidden="true">
+          <DefaultValue>{Outputs.storageAccountName}</DefaultValue>
         </Parameter>
-        <Parameter name="powerBiUserDisplayName" hidden="true">
-          <DefaultValue>{Outputs.powerBiUserDisplayName}</DefaultValue>
+        <Parameter name="storageAccountKey" hidden="true">
+          <DefaultValue>{Outputs.storageAccountKey}</DefaultValue>
         </Parameter>
         <Parameter name="mlFunctionEndpoint" hidden="true">
           <DefaultValue>{Outputs.webServiceApiUrl}</DefaultValue>
@@ -117,13 +109,6 @@
         </Parameter>
       </Parameters>
     </ArmDeployment>
-    <AzureMlWebService title="Copy an Experiment from Gallery and deploy as Web Service">
-      <Parameters>
-        <Parameter hidden="true" type="string" name="experimentPackageUrl" defaultValue="https://storage.azureml.net/directories/5067590f26d5412ebf2220a1dacb0f22/items" description="Machine Learning Experiment Package Url" />
-        <Parameter hidden="true" type="string" name="experimentGalleryUrl" defaultValue="https://gallery.cortanaintelligence.com/Details/predictive-mini-twitter-sentiment-analysis-experiment-1" description="Machine Learning Experiment Gallery Url" />
-        <Parameter hidden="true" type="string" name="experimentEntityId" defaultValue="Predictive-Experiment-Mini-Twitter-sentiment-analysis-2" description="Machine Learning Experiment Entity Id" />
-      </Parameters>
-    </AzureMlWebService>
     <Manual title="Done">
       <Instructions src="StreamAnalysisWithMLInstructions.md" format="markdown"></Instructions>
       <Actions>

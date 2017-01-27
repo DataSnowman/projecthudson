@@ -1,0 +1,132 @@
+{
+    "contentVersion": "1.0.0.0",
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "parameters": {
+        "baseUrl": {
+            "type": "string"
+        },
+        "sqlServerUsername": {
+            "metadata": {
+                "description": "Username for SQL Server that will be created for results database (minimum 3 characters)"
+            },
+            "type": "string",
+            "minLength": 3
+        },
+        "sqlServerPassword": {
+              "metadata": {
+                  "description": "Password for SQL Server that will be created for results database"
+              },
+              "type": "securestring",
+              "minLength": 8
+        },
+        "twitterKeywords": {
+            "type": "string",
+            "defaultValue": "Azure,Skype,XBox,Microsoft,Seattle",
+            "metadata": {
+                "description": "Keywords for Twitter sentiment analysis, please seperate multiple words by comma (hashtags # and user mentions @ cannot be used in keywords)"
+            }
+        },
+        "oauthConsumerKey": {
+            "type": "string",
+            "metadata": {
+                "description": "OAuth Consumer Key of your Twitter account"
+            }
+        },
+        "oauthConsumerSecret": {
+            "type": "string",
+            "metadata": {
+                "description": "OAuth Consumer Secret of your Twitter account"
+            }
+        },
+        "oauthToken": {
+            "type": "string",
+            "metadata": {
+                "description": "OAuth Access Token of your Twitter account"
+            }
+        },
+        "oauthTokenSecret": {
+            "type": "string",
+            "metadata": {
+                "description": "OAuth Access Token Secret of your Twitter account"
+            }
+        }
+    },
+    "variables": {
+        "namePrefix": "[resourceGroup().name]",
+        "uniqueNamePrefix": "[concat(variables('namePrefix'), uniqueString(subscription().subscriptionId))]",
+        "location": "[resourceGroup().location]",
+        "sqlVersion": "2014-04-01",
+        "sqlServerName": "[concat(variables('uniqueNamePrefix'),'srv')]",
+        "sqlDatabaseName": "[concat(variables('uniqueNamePrefix'),'db')]",
+        "sqlServerUsername": "[parameters('sqlServerUsername')]",
+        "sqlServerPassword": "[parameters('sqlServerPassword')]",
+        "sqlServerVersion": "12.0",
+        "startIpAddress": "0.0.0.0",
+        "endIpAddress": "255.255.255.255",
+        "edition": "Standard",
+        "databaseTier": "S0",
+        "collation": "SQL_Latin1_General_CP1_CI_AS",
+        "maxSizeBytes": "2147483648",
+        "sqlSvrResourceId": "[resourceId('Microsoft.Sql/servers', variables('sqlServerName'))]",
+        "sqlDbResourceId": "[resourceId('Microsoft.Sql/servers/databases', variables('sqlServerName'), variables('sqlDatabaseName'))]"
+    },
+    "resources": [
+        {
+            "name": "[variables('sqlServerName')]",
+            "type": "Microsoft.Sql/servers",
+            "location": "[variables('location')]",
+            "apiVersion": "[variables('sqlVersion')]",
+            "properties": {
+                "administratorLogin": "[variables('sqlServerUsername')]",
+                "administratorLoginPassword": "[variables('sqlServerPassword')]",
+                "version": "[variables('sqlServerVersion')]"
+            },
+            "resources": [
+                {
+                    "name": "[variables('sqlDatabaseName')]",
+                    "type": "databases",
+                    "location": "[variables('location')]",
+                    "apiVersion": "[variables('sqlVersion')]",
+                    "dependsOn": [
+                        "[variables('sqlSvrResourceId')]"
+                    ],
+                    "properties": {
+                        "edition": "[variables('edition')]",
+                        "requestedServiceObjectiveName": "[variables('databaseTier')]",
+                        "collation": "[variables('collation')]",
+                        "maxSizeBytes": "[variables('maxSizeBytes')]"
+                    }
+                },
+                {
+                    "apiVersion": "[variables('sqlVersion')]",
+                    "type": "firewallrules",
+                    "location": "[variables('location')]",
+                    "name": "AllowAllWindowsAzureIps",
+                    "dependsOn": [
+                        "[variables('sqlSvrResourceId')]"
+                    ],
+                    "properties": {
+                        "startIpAddress": "[variables('startIpAddress')]",
+                        "endIpAddress": "[variables('endIpAddress')]"
+                    }
+                }
+            ]
+        }
+    ],
+    "outputs": {
+        "sqlServerName": { "type": "string", "value": "[variables('sqlServerName')]" },
+        "sqlDatabaseName": { "type": "string", "value": "[variables('sqlDatabaseName')]" },
+        "sqlServerUsername": { "type": "string", "value": "[variables('sqlServerUsername')]" },
+        "sqlServerPassword": { "type": "string", "value": "[variables('sqlServerPassword')]" },
+        "sqlServerUrl": {
+            "type": "string",
+            "value": "[concat('https://portal.azure.com/#resource/subscriptions/', subscription().subscriptionId, '/resourceGroups/', resourceGroup().name, '/providers/Microsoft.Sql/servers/', variables('sqlServerName'), '/overview')]"
+          },
+        "twitterKeywords": { "type": "string", "value": "[parameters('twitterKeywords')]" },
+        "oauthConsumerKeySub": { "type": "string", "value": "[substring(parameters('oauthConsumerKey'),0,7)]" },
+        "oauthConsumerKey": { "type": "string", "value": "[parameters('oauthConsumerKey')]" },
+        "oauthConsumerSecret": { "type": "string", "value": "[parameters('oauthConsumerSecret')]" },
+        "oauthToken": { "type": "string", "value": "[parameters('oauthToken')]" },
+        "oauthTokenSecret": { "type": "string", "value": "[parameters('oauthTokenSecret')]" }
+    }
+}

@@ -5,16 +5,16 @@
         "baseUrl": {
             "type": "string"
         },
-        "powerBiUserId": {
+        "storageAccountName": {
             "type": "string",
             "metadata": {
-                "description": "User ID for PowerBI"
+                "description": "Storage Account Name"
             }
         },
-        "powerBiUserDisplayName": {
+        "storageAccountKey": {
             "type": "string",
             "metadata": {
-                "description": "User display name for PowerBI"
+                "description": "Storage Account Key"
             }
         },
         "sqlServerName": {
@@ -89,10 +89,8 @@
         "namePrefix": "[resourceGroup().name]",
         "uniqueNamePrefix": "[toLower(concat(resourceGroup().name, uniqueString(subscription().subscriptionId)))]",
         "location": "[resourceGroup().location]",
-        "storageAccountType": "Standard_LRS",
-        "storageVersion": "2015-06-15",
-        "storageName": "[variables('uniqueNamePrefix')]",
-        "storageId": "[resourceId('Microsoft.Storage/storageAccounts', variables('storageName'))]",
+        "storageAccountName": "[parameters('storageAccountName')]",
+        "storageAccountKey": "[parameters('storageAccountKey')]",
         "sqlServerName": "[parameters('sqlServerName')]",
         "sqlDatabaseName": "[parameters('sqlDatabaseName')]",
         "sqlServerUsername": "[parameters('sqlServerUsername')]",
@@ -110,9 +108,6 @@
         "ehSendPolicyName": "[concat(variables('sbName'), concat('/', concat(variables('ehInName'), concat('/', variables('ehSendPolicyKeyName')))))]",
         "ehPrimaryKey": "twqaPF9phvUpL15t83hLMaRVYizLA2HYo3iFRMzRHMo=",
         "ehSecondaryKey": "pVjEaumd56Id2UCwbIHEVzOFIHpiR1HbBSQKfeWa7Ns=",
-        "powerBiRefreshToken": "none",
-        "powerBiGroupId": "00000000-0000-0000-0000-000000000000",
-        "powerBiWorkspaceName": "My Workspace",
         "transformQuery": "WITH subquery AS (SELECT text, topic, CreatedAt, sentiment(text) as result from [TwitterStream] WHERE text IS NOT NULL) Select text, topic, createdAt, CAST(result.[score] AS float) as Score Into [SQLOutput] From subquery  SELECT * INTO [StreamOutput] FROM [TwitterStream] WHERE text IS NOT NULL",
         "sfVersion": "2016-03-01",
         "wsVersion": "2016-03-01",
@@ -127,13 +122,6 @@
     },
 
     "resources": [
-        {
-            "apiVersion": "[variables('storageVersion')]",
-            "type": "Microsoft.Storage/storageAccounts",
-            "name": "[variables('storageName')]",
-            "location": "[variables('location')]",
-            "properties": { "accountType": "[variables('storageAccountType')]" }
-        },
         {
             "apiVersion": "[variables('sbVersion')]",
             "name": "[variables('sbName')]",
@@ -181,9 +169,6 @@
             "type": "Microsoft.StreamAnalytics/streamingjobs",
             "name": "[variables('saJobName')]",
             "location": "[variables('location')]",
-            "dependsOn": [
-                "[concat('Microsoft.Storage/storageAccounts/', variables('storageName'))]"
-            ],
             "properties": {
                 "sku": { "name": "standard" },
                 "EventsOutOfOrderMaxDelayInSeconds": 10,
@@ -225,8 +210,8 @@
                                     "PathPattern": "Output/logs/{date}/{time}",
                                     "StorageAccounts": [
                                         {
-                                            "AccountKey": "[listkeys(variables('storageId'), variables('storageVersion')).key1]",
-                                            "AccountName": "[variables('storageName')]"
+                                            "AccountKey": "[variables('storageAccountKey')]",
+                                            "AccountName": "[variables('storageAccountName')]"
                                         }
                                     ]
                                 },
@@ -389,9 +374,7 @@
     "ehSendPolicyConnectionString": { "type": "string", "value": "[listkeys(variables('ehSendPolicyResourceId'), variables('sbVersion')).primaryConnectionString]" },
     "saName": { "type": "string", "value": "[variables('saJobName')]" },
     "saJobOutputsUrl": { "type": "string", "value": "[concat('https://portal.azure.com/#resource/subscriptions/', subscription().subscriptionId, '/resourceGroups/', resourceGroup().name, '/providers/Microsoft.StreamAnalytics/streamingjobs/', variables('saJobName'), '/overview')]" },
-    "storagekey": { "type": "string", "value": "[listkeys(variables('storageId'), variables('storageVersion')).key1]" },
-    "webJob2Name": { "type": "string", "value": "[variables('webJobName')]" },
-    "webJob2SiteName": { "type": "string", "value": "[variables('webJobSiteName')]" },
-    "webJob2LogsUrl": { "type": "string", "value": "[concat('https://', variables('webJobSiteName'), '.scm.azurewebsites.net/azurejobs/#/jobs/continuous/', variables('webJobName'))]" }
+    "storagekey": { "type": "string", "value": "[variables('storageAccountKey')]" },
+    "storageAccountUrl": { "type": "string", "value": "[concat('https://portal.azure.com/#resource/subscriptions/', subscription().subscriptionId, '/resourceGroups/', resourceGroup().name, '/providers/Microsoft.Storage/storageAccounts/', variables('storageAccountName'))]" }
   }
 }
