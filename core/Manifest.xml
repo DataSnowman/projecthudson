@@ -1,15 +1,12 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <Template>
-  <Category>DesignPattern</Category>
+  <Category>Internal</Category>
   <Title>Project Hudson Stream Analysis with Azure SQL DB and AML</Title>
   <Owner displayname="Darwin Schweitzer" email="darsch@microsoft.com"/>
   <PublishedOn>01/12/2017</PublishedOn>
   <ImageUrl>{PatternAssetBaseUrl}/streamanalysiswithml.png</ImageUrl>
-  <Description>Analyzing data streams in real-time is a problem that a lot of businesses can relate to. In this fast paced digital era, enterprises depend on making quick and intelligent decisions. This requires them to analyze data streams from various sources in real time. For example, they might want to monitor weather data from a sensor, financial data from the stock market or social media reaction to a newly launched product or campaign.
-  We show you how to address this using a Cortana Intelligence Solution, which sets up an end-to-end pipeline to ingest Twitter feeds based on a user defined set of keywords, analyze their sentiment using an Azure Machine Learning based webservice and visualize the predicted sentiment in a Power BI dashboard.</Description>
-  <Summary src="StreamAnalysisWithMLSummary.md" format="markdown"/>
+  <Guide src="https://raw.githubusercontent.com/DataSnowman/projecthudson/master/README.md" format="markdown"/>
   <Prerequisites src="Prereqs.md" format="markdown"/>
-  <EstimatedTime>10 Minutes</EstimatedTime>
    <TryItNow landscapeDashboardPath="{PatternAssetBaseUrl/dashboards/TryItNow/ConnectedCarsPbiReport-sample-landscape.pbix"
             portraitDashboardPath="{PatternAssetBaseUrl}/dashboards/TryItNow/ConnectedCarsPbiReport-sample-portrait.pbix" />
   <Ingredients>
