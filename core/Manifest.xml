@@ -5,9 +5,9 @@
   <Owner displayname="Darwin Schweitzer" email="darsch@microsoft.com"/>
   <PublishedOn>01/12/2017</PublishedOn>
   <ImageUrl>{PatternAssetBaseUrl}/streamanalysiswithml.png</ImageUrl>
+  <Summary src="Summary.md" format="markdown"/>
   <Guide src="https://raw.githubusercontent.com/DataSnowman/projecthudson/master/README.md" format="markdown"/>
-  <Prerequisites src="Prereqs.md" format="markdown"/>
-   <TryItNow landscapeDashboardPath="{PatternAssetBaseUrl/dashboards/TryItNow/ConnectedCarsPbiReport-sample-landscape.pbix"
+  <TryItNow landscapeDashboardPath="{PatternAssetBaseUrl/dashboards/TryItNow/ConnectedCarsPbiReport-sample-landscape.pbix"
             portraitDashboardPath="{PatternAssetBaseUrl}/dashboards/TryItNow/ConnectedCarsPbiReport-sample-portrait.pbix" />
   <Ingredients>
     <Ingredient>Web</Ingredient>
@@ -36,12 +36,10 @@
         </Parameter>
       </Parameters>
     </ArmDeployment>
-    <AzureMlWebService title="Copy an Experiment from Gallery and deploy as Web Service">
-      <Parameters>
-        <Parameter hidden="true" type="string" name="experimentPackageUrl" defaultValue="https://storage.azureml.net/directories/5067590f26d5412ebf2220a1dacb0f22/items" description="Machine Learning Experiment Package Url" />
-        <Parameter hidden="true" type="string" name="experimentGalleryUrl" defaultValue="https://gallery.cortanaintelligence.com/Details/predictive-mini-twitter-sentiment-analysis-experiment-1" description="Machine Learning Experiment Gallery Url" />
-        <Parameter hidden="true" type="string" name="experimentEntityId" defaultValue="Predictive-Experiment-Mini-Twitter-sentiment-analysis-2" description="Machine Learning Experiment Entity Id" />
-      </Parameters>
+    <AzureMlWebService title="Copy an Experiment from Gallery and deploy as Web Service" hiddenParameters ="true">
+      <PackageUrl>https://storage.azureml.net/directories/5067590f26d5412ebf2220a1dacb0f22/items</PackageUrl>
+      <GalleryUrl>https://gallery.cortanaintelligence.com/Details/predictive-mini-twitter-sentiment-analysis-experiment-1</GalleryUrl>
+      <EntityId>Predictive-Experiment-Mini-Twitter-sentiment-analysis-2</EntityId>
     </AzureMlWebService>
     <Function name="prepsql" title="Preparing the SQL Database">
       <Parameters>
