@@ -5,7 +5,6 @@
   <Owner displayname="Darwin Schweitzer" email="darsch@microsoft.com"/>
   <PublishedOn>01/12/2017</PublishedOn>
   <ImageUrl>{PatternAssetBaseUrl}/streamanalysiswithml.png</ImageUrl>
-  <Summary src="Summary.md" format="markdown"/>
   <Guide src="https://raw.githubusercontent.com/DataSnowman/projecthudson/master/README.md" format="markdown"/>
   <TryItNow landscapeDashboardPath="{PatternAssetBaseUrl/dashboards/TryItNow/ConnectedCarsPbiReport-sample-landscape.pbix"
             portraitDashboardPath="{PatternAssetBaseUrl}/dashboards/TryItNow/ConnectedCarsPbiReport-sample-portrait.pbix" />
