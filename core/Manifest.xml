@@ -4,10 +4,10 @@
   <Title>Project Hudson Stream Analysis with Azure SQL DB and AML</Title>
   <Owner displayname="Darwin Schweitzer" email="darsch@microsoft.com"/>
   <PublishedOn>01/12/2017</PublishedOn>
-  <ImageUrl>{PatternAssetBaseUrl}/streamanalysiswithml.png</ImageUrl>
+  <ImageUrl>{PatternAssetBaseUrl}/projecthudson.jpg</ImageUrl>
   <Guide src="https://raw.githubusercontent.com/DataSnowman/projecthudson/master/README.md" format="markdown"/>
-  <TryItNow landscapeDashboardPath="{PatternAssetBaseUrl/dashboards/TryItNow/ConnectedCarsPbiReport-sample-landscape.pbix"
-            portraitDashboardPath="{PatternAssetBaseUrl}/dashboards/TryItNow/ConnectedCarsPbiReport-sample-portrait.pbix" />
+  <TryItNow landscapeDashboardPath="{PatternAssetBaseUrl/dashboards/TryItNow/StreamingTweets2.pbix"
+            portraitDashboardPath="{PatternAssetBaseUrl}/dashboards/TryItNow/StreamingTweets2.pbix" />
   <Ingredients>
     <Ingredient>Web</Ingredient>
     <Ingredient>EventHub</Ingredient>
