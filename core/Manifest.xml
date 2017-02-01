@@ -103,6 +103,14 @@
         </Parameter>
       </Parameters>
     </ArmDeployment>
+    <Function name="startasa" title="Start ASA Job">
+      <Parameters>
+        <Parameter hidden="true" name="accessToken" type="string" defaultValue="{Authorization}" /> 
+        <Parameter hidden="true" name="ResourceGroupName" type="string" defaultValue="{ResourceGroup.Name}" />
+        <Parameter hidden="true" name="SubscriptionId" type="string" defaultValue="{SubscriptionId}" /> 
+        <Parameter hidden="true" name="SaJobName" type="string" defaultValue="{Outputs.saName}" /> 
+      </Parameters>
+    </Function>
     <Manual title="Done">
       <Instructions src="StreamAnalysisWithMLInstructions.md" format="markdown"></Instructions>
       <Actions>
