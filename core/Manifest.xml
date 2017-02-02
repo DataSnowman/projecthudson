@@ -37,10 +37,9 @@
     </ArmDeployment>
     <Function name="prepsql" title="Preparing the SQL Database (Function)">
       <Parameters>
-        <Parameter hidden="true" name="sqlServerName" defaultValue="{Outputs.sqlServerName}" />
-        <Parameter hidden="true" name="sqlDatabaseName" defaultValue="{Outputs.sqlDatabaseName}" />
-        <Parameter hidden="true" name="sqlServerUsername" defaultValue="{Outputs.sqlServerUsername}" />
-        <Parameter hidden="true" name="sqlServerPassword" defaultValue="{Outputs.sqlServerPassword}" />
+        <Parameter hidden="true" name="sqlConnectionString">
+            <DefaultValue>Server=tcp:{Outputs.sqlServerName}.database.windows.net,1433;Database={Outputs.sqlDatabaseName};User ID={Outputs.sqlServerUsername};Password={Outputs.sqlServerPassword};Trusted_Connection=False;Encrypt=True;Connection Timeout=30</DefaultValue>
+        </Parameter>
       </Parameters>
     </Function>
     <SolutionDashboard>
@@ -106,9 +105,9 @@
     <Function name="startasa" title="Start Stream Analytics Job (Function)">
       <Parameters>
         <Parameter hidden="true" name="accessToken" type="string" defaultValue="{Authorization}" /> 
-        <Parameter hidden="true" name="ResourceGroupName" type="string" defaultValue="{ResourceGroup.Name}" />
-        <Parameter hidden="true" name="SubscriptionId" type="string" defaultValue="{SubscriptionId}" /> 
-        <Parameter hidden="true" name="SaJobName" type="string" defaultValue="{Outputs.saName}" /> 
+        <Parameter hidden="true" name="resourceGroupName" type="string" defaultValue="{ResourceGroup.Name}" />
+        <Parameter hidden="true" name="subscriptionId" type="string" defaultValue="{SubscriptionId}" /> 
+        <Parameter hidden="true" name="saJobName" type="string" defaultValue="{Outputs.saName}" /> 
       </Parameters>
     </Function>
     <Manual title="Done">
