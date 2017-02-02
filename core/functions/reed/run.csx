@@ -9,10 +9,9 @@
 #load "..\CiqsHelpers\All.csx"
 
 using Microsoft.Azure;
-//using Microsoft.Azure.Management.Resources;
+using Microsoft.Azure.Management.Resources;
 using Microsoft.Azure.Management.StreamAnalytics;
 using Microsoft.Azure.Management.StreamAnalytics.Models;
-//using Microsoft.Azure.Management.Resources.Models;
 
 public static async Task Run(HttpRequestMessage req, TraceWriter log)
 {
@@ -60,18 +59,21 @@ public static async Task StartStreamJobs(string SubscriptionId, string authoriza
             };
 
             LongRunningOperationResponse response = streamClient.StreamingJobs.Start(resourceGroup, jobName, jobStartParameters);
-            
-            while (response.Status != OperationStatus.Succeeded)
-            {
-                var uri = new Uri(response.OperationStatusLink);
-                
-                response = await streamClient.GetLongRunningOperationStatusAsync(response.OperationStatusLink);
+            log.Info(response.OperationStatusLink);
+            var uri = new Uri("https://management.azure.com/");
+            log.Info(response.OperationStatusLink);
 
-                if (response.Status == OperationStatus.Failed)
+            using (var resourceManagementClient = new ResourceManagementClient(credentials, uri))
+            {
+                while (response.Status != OperationStatus.Succeeded)
                 {
-                    throw new Exception(string.Format("Start SA job: {0} failed", jobName));
+                    if (response.Status == OperationStatus.Failed)
+                    {
+                        throw new Exception(string.Format("Start SA job: {0} failed", jobName));
+                    }
+                    await resourceManagementClient.GetLongRunningOperationStatusAsync(response.OperationStatusLink);
+                    await Task.Delay(1000);
                 }
-                await Task.Delay(1000);
             }
         }
 

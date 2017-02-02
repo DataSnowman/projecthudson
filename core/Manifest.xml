@@ -17,7 +17,7 @@
     <Ingredient>PowerBi</Ingredient>
   </Ingredients>
   <ProvisioningSteps>
-    <ArmDeployment source="SQLserver.json" title="Create SQL Database">
+    <ArmDeployment source="SQLserverArmTemplate.json" title="Create SQL Database (ARM)">
       <Parameters>
         <Parameter name="baseUrl" hidden="true">
           <DefaultValue>{PatternAssetBaseUrl}</DefaultValue>
@@ -35,12 +35,7 @@
         </Parameter>
       </Parameters>
     </ArmDeployment>
-    <AzureMlWebService title="Copy an Experiment from Gallery and deploy as Web Service" hiddenParameters ="true">
-      <PackageUrl>https://storage.azureml.net/directories/5067590f26d5412ebf2220a1dacb0f22/items</PackageUrl>
-      <GalleryUrl>https://gallery.cortanaintelligence.com/Details/predictive-mini-twitter-sentiment-analysis-experiment-1</GalleryUrl>
-      <EntityId>Predictive-Experiment-Mini-Twitter-sentiment-analysis-2</EntityId>
-    </AzureMlWebService>
-    <Function name="prepsql" title="Preparing the SQL Database">
+    <Function name="prepsql" title="Preparing the SQL Database (Function)">
       <Parameters>
         <Parameter hidden="true" name="sqlServerName" defaultValue="{Outputs.sqlServerName}" />
         <Parameter hidden="true" name="sqlDatabaseName" defaultValue="{Outputs.sqlDatabaseName}" />
@@ -57,7 +52,12 @@
         <Parameter hidden="true" name="sqlServerPassword" defaultValue="{Outputs.sqlServerPassword}" />
       </Parameters>
     </SolutionDashboard>
-    <ArmDeployment source="StreamAnalysisWithMLArmTemplate.json" title="Create Stream Analytics Job with ML Function">
+    <AzureMlWebService title="Copy an Experiment from Gallery and deploy as Web Service" hiddenParameters ="true">
+      <PackageUrl>https://storage.azureml.net/directories/5067590f26d5412ebf2220a1dacb0f22/items</PackageUrl>
+      <GalleryUrl>https://gallery.cortanaintelligence.com/Details/predictive-mini-twitter-sentiment-analysis-experiment-1</GalleryUrl>
+      <EntityId>Predictive-Experiment-Mini-Twitter-sentiment-analysis-2</EntityId>
+    </AzureMlWebService>
+    <ArmDeployment source="EventHubStreamAnalysisWithMLArmTemplate.json" title="Create Event Hub and Stream Analytics Job with ML Function (ARM)">
       <Parameters>
         <Parameter name="baseUrl" hidden="true">
           <DefaultValue>{PatternAssetBaseUrl}</DefaultValue>
@@ -103,7 +103,7 @@
         </Parameter>
       </Parameters>
     </ArmDeployment>
-    <Function name="startasa" title="Start ASA Job">
+    <Function name="startasa" title="Start Stream Analytics Job (Function)">
       <Parameters>
         <Parameter hidden="true" name="accessToken" type="string" defaultValue="{Authorization}" /> 
         <Parameter hidden="true" name="ResourceGroupName" type="string" defaultValue="{ResourceGroup.Name}" />
@@ -112,35 +112,7 @@
       </Parameters>
     </Function>
     <Manual title="Done">
-      <Instructions src="StreamAnalysisWithMLInstructions.md" format="markdown"></Instructions>
-      <Actions>
-        <Action id="startjob">
-          <![CDATA[
-                {
-                  "SubscriptionId": "[SubscriptionId]",
-                  "ProjectName": "[ProjectName]",
-                  "HttpVerb": "POST",
-                  "BaseUrlType": "CSM",
-                  "UrlPath": "/subscriptions/[SubscriptionId]/resourceGroups/[ResourceGroup.Name]/providers/Microsoft.StreamAnalytics/streamingjobs/[Outputs.saName]/start?api-version=2015-06-01",
-                  "Headers": {"Content-Type": "application/json"},
-                  "Payload": null
-                }
-              ]]>
-        </Action>
-        <Action id="stopjob">
-          <![CDATA[
-                {
-                  "SubscriptionId": "[SubscriptionId]",
-                  "ProjectName": "[ProjectName]",
-                  "HttpVerb": "POST",
-                  "BaseUrlType": "CSM",
-                  "UrlPath": "/subscriptions/[SubscriptionId]/resourceGroups/[ResourceGroup.Name]/providers/Microsoft.StreamAnalytics/streamingjobs/[Outputs.saName]/stop?api-version=2015-06-01",
-                  "Headers": {"Content-Type": "application/json"},
-                  "Payload": null
-                }
-              ]]>
-        </Action>
-      </Actions>
+      <Instructions src="ProjectHudsonInstructions.md" format="markdown"></Instructions>
     </Manual>
   </ProvisioningSteps>
 </Template>
